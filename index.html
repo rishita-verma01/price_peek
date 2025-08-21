@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PricePeek - Compare Product Prices</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PricePeek</h1>
+            <p>Find the best prices for your favorite products across top Indian stores!</p>
+        </header>
+
+        <div class="search-container">
+            <div class="input-group">
+                <input type="text" id="productInput" placeholder="Enter product name...">
+                <button id="searchBtn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Searching for the best prices...</p>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">
+                <h2>Search Results</h2>
+                <p>Prices for: <span id="productName"></span></p>
+            </div>
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2023 PricePeek - Compare prices across top Indian e-commerce platforms</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
