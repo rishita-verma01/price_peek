@@ -5,32 +5,36 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import re
 import time
 from urllib.parse import quote
 import threading
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Global driver instance (to be initialized once)
+# Global driver instance
 driver = None
 driver_lock = threading.Lock()
 
 def init_driver():
-    """Initialize the Chrome WebDriver"""
+    """Initialize the Chrome WebDriver for Render"""
     global driver
     if driver is None:
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in background
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--window-size=1920,1080")
         chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
         
-        driver = webdriver.Chrome(options=chrome_options)
+        # For Render: Use the installed chromium binary
+        service = Service(executable_path='/usr/bin/chromium')
+        driver = webdriver.Chrome(service=service, options=chrome_options)
 
 def extract_price(price_text):
     """Extract numeric price from text"""
@@ -64,7 +68,7 @@ def scrape_amazon_selenium(product_name):
             # Find all product containers
             products = driver.find_elements(By.CSS_SELECTOR, "[data-component-type='s-search-result']")
             
-            for product in products[:5]:  # Check first 5 products
+            for product in products[:5]:
                 try:
                     # Try multiple price selectors
                     price_selectors = [
@@ -123,9 +127,9 @@ def scrape_flipkart_selenium(product_name):
             # Find all product containers
             products = driver.find_elements(By.CSS_SELECTOR, "[data-id]")
             
-            for product in products[:5]:  # Check first 5 products
+            for product in products[:5]:
                 try:
-                    # Try multiple price patterns (Flipkart frequently changes class names)
+                    # Try multiple price patterns
                     price = None
                     
                     # Pattern 1: Look for elements containing ₹ symbol
@@ -199,6 +203,17 @@ def scrape_flipkart_selenium(product_name):
         print(f"Flipkart scraping error: {str(e)}")
         return {'price': 'Not available', 'url': f"https://www.flipkart.com/search?q={quote(product_name)}", 'available': False}
 
+# ADD THIS ROUTE FOR ROOT URL
+@app.route('/')
+def home():
+    return jsonify({
+        'message': 'Price Comparison API is running!',
+        'endpoints': {
+            'search': '/search?product=product_name',
+            'example': '/search?product=iphone+15'
+        }
+    })
+
 @app.route('/search', methods=['GET'])
 def search_product():
     product_name = request.args.get('product', '')
@@ -208,7 +223,7 @@ def search_product():
     
     results = []
     
-    # Scrape from each store (only Amazon and Flipkart for now)
+    # Scrape from each store
     stores = [
         ('amazon', 'Amazon India', scrape_amazon_selenium),
         ('flipkart', 'Flipkart', scrape_flipkart_selenium),
