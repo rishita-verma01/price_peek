@@ -14,7 +14,14 @@ import threading
 import os
 
 app = Flask(__name__)
-CORS(app)
+# Enable CORS for all origins with proper headers
+CORS(app, resources={
+    r"/*": {
+        "origins": ["*"],  # Allow all origins for now
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Global driver instance
 driver = None
@@ -203,7 +210,6 @@ def scrape_flipkart_selenium(product_name):
         print(f"Flipkart scraping error: {str(e)}")
         return {'price': 'Not available', 'url': f"https://www.flipkart.com/search?q={quote(product_name)}", 'available': False}
 
-# ADD THIS ROUTE FOR ROOT URL
 @app.route('/')
 def home():
     return jsonify({
@@ -213,6 +219,10 @@ def home():
             'example': '/search?product=iphone+15'
         }
     })
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
 
 @app.route('/search', methods=['GET'])
 def search_product():
