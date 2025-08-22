@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsGrid = document.getElementById('resultsGrid');
     const productName = document.getElementById('productName');
     
+    // Determine backend URL based on environment
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const BACKEND_URL = isLocal ? 'http://127.0.0.1:5000' : 'https://your-backend-app-name.onrender.com';
+    
     searchBtn.addEventListener('click', initiateSearch);
     productInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -33,10 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function fetchPrices(query) {
-        fetch(`http://127.0.0.1:5000/search?product=${encodeURIComponent(query)}`)
+        fetch(`${BACKEND_URL}/search?product=${encodeURIComponent(query)}`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
@@ -46,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error fetching prices:', error);
                 loader.style.display = 'none';
-                alert('Error fetching prices. Please make sure the backend server is running on port 5000.');
+                alert('Error fetching prices. Please make sure the backend server is running and check the console for details.');
             });
     }
     
@@ -56,6 +60,11 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContainer.style.display = 'block';
         
         resultsGrid.innerHTML = '';
+        
+        if (results.length === 0) {
+            resultsGrid.innerHTML = '<p class="no-results">No results found. Please try a different search term.</p>';
+            return;
+        }
         
         results.forEach(result => {
             const card = document.createElement('div');
@@ -70,7 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${result.available ? 
                         `<p class="price">${result.price}</p>
                          <a href="${result.url}" target="_blank" class="product-link">View Product</a>` :
-                        `<p class="not-available">Product not available on ${result.storeName}</p>`
+                        `<p class="not-available">Product not available on ${result.storeName}</p>
+                         <a href="${result.url}" target="_blank" class="product-link">Browse Store</a>`
                     }
                 </div>
             `;
